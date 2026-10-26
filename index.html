@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUDIMO - Livres Audio & Formations en Ligne</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- BOUTON FLOTTANT "PERSONNALISER UN LIVRE" -->
+    <button onclick="showView('custom')" class="floating-custom-btn">
+        Personnaliser un livre
+    </button>
+
+    <!-- NOTIFICATION -->
+    <div class="toast" id="toast"></div>
+
+    <!-- LECTEUR AUDIO -->
+    <div class="player-overlay" id="player-overlay" onclick="if(event.target === this) closePlayer()">
+        <div class="player-box">
+            <button class="player-close" onclick="closePlayer()" aria-label="Fermer le lecteur">&times;</button>
+            <div class="player-label">Lecture en cours</div>
+            <img id="player-cover" class="player-cover" alt="Couverture du livre audio">
+            <!-- Élément de lecture unique : affiché pour les vidéos, masqué pour les audios -->
+            <video id="player-audio" class="player-video" playsinline controlsList="nodownload" disablePictureInPicture oncontextmenu="return false;" preload="metadata"></video>
+            <h3 class="player-title" id="player-title"></h3>
+            <p class="player-cat" id="player-cat"></p>
+            <input type="range" class="player-seek" id="player-seek" min="0" max="100" step="0.1" value="0" aria-label="Position de lecture">
+            <div class="player-times"><span id="player-current">0:00</span><span id="player-total">0:00</span></div>
+            <div class="player-controls">
+                <button class="player-skip" onclick="skipPlayer(-15)">-15 s</button>
+                <button class="player-play" id="player-play" onclick="togglePlayer()" aria-label="Lecture / Pause"></button>
+                <button class="player-skip" onclick="skipPlayer(15)">+15 s</button>
+            </div>
+            <div class="player-extra">
+                <button class="player-speed" id="player-speed" onclick="cyclePlayerSpeed()" aria-label="Vitesse de lecture">1x</button>
+                <button class="player-speed" id="player-fs" onclick="fullscreenPlayer()" style="display:none;">Plein écran</button>
+                <label class="player-vol">Volume
+                    <input type="range" class="player-volume" id="player-volume" min="0" max="1" step="0.05" value="1">
+                </label>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <div class="dropdown">
+                <button class="dropdown-btn">Catégories</button>
+                <div class="dropdown-content" id="nav-dropdown-links"></div>
+            </div>
+            <a onclick="showView('home')" class="logo">AUDIMO<span>.</span></a>
+        </div>
+        <div class="nav-right">
+            <!-- Bouton personnalisé dans le header -->
+            <button onclick="showView('custom')" class="header-custom-btn">Personnaliser un livre</button>
+
+            <select class="theme-select" id="theme-selector" onchange="changeTheme(this.value)">
+                <option value="dark">🌙 Mode Sombre</option>
+                <option value="light">☀️ Mode Clair</option>
+                <option value="colorful">🎨 Multicolore</option>
+            </select>
+
+            <button onclick="showView('cart')" class="cart-link">🛒 Panier <span class="cart-badge" id="cart-count">0</span></button>
+            <button onclick="showView('admin')" class="admin-link">🔒 Espace Admin</button>
+        </div>
+    </nav>
+
+    <!-- 1. VUE ACCUEIL (HOME) -->
+    <div id="view-home" class="page-view active">
+        <header class="hero">
+            <h1>ÉCOUTEZ. APPRENEZ. <span>ÉVADEZ-VOUS.</span></h1>
+            <p class="hero-desc">Découvrez nos collections exclusives de livres audio ou personnalisez votre propre ouvrage à partir de vos cours.</p>
+            
+            <div class="search-container">
+                <input type="text" placeholder="Rechercher un catalogue, un cours ou une formation...">
+                <button type="button">Rechercher</button>
+            </div>
+        </header>
+
+        <main class="catalog-section">
+            <p class="section-header-text">Explorez nos collections disponibles et profitez de l'écoute directement sur AUDIMO. Cliquez sur le bouton + pour ajouter un catalogue à votre panier.</p>
+            <div class="categories-grid" id="home-catalog-grid"></div>
+        </main>
+    </div>
+
+    <!-- 2. VUE CONNEXION (PERSONNALISER UN LIVRE - ÉTAPE 1) -->
+    <div id="view-custom" class="page-view">
+        <main class="container">
+            <div class="form-container-box">
+                <h1 style="color:var(--accent); margin-bottom:0.5rem; text-align:center;">🔐 Connexion</h1>
+                <p style="color:var(--text-muted); text-align:center; margin-bottom:1.8rem; font-size:0.95rem;">
+                    Pour vous offrir un livre audio de qualité, renseignez votre nom, votre numéro de téléphone et, si vous le souhaitez, votre niveau d'études.
+                </p>
+                <form onsubmit="handleCustomLogin(event)">
+                    <div class="form-group">
+                        <label>Votre Nom complet :</label>
+                        <input type="text" id="login-name" placeholder="Ex: Jean Kouassi" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Numéro de téléphone :</label>
+                        <input type="tel" id="login-phone" placeholder="Ex: +225 0700000000" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Niveau d'études (facultatif) :</label>
+                        <select id="login-level">
+                            <option value="">Je préfère ne pas préciser</option>
+                            <option value="Collège">Collège</option>
+                            <option value="Lycée">Lycée</option>
+                            <option value="Université / Licence">Université / Licence</option>
+                            <option value="Master / Doctorat">Master / Doctorat</option>
+                            <option value="Professionnel / Formation continue">Professionnel / Formation continue</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-submit">Se connecter</button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- 2bis. VUE COMMANDE DU LIVRE PERSONNALISÉ (ÉTAPE 2) -->
+    <div id="view-custom-order" class="page-view">
+        <main class="container">
+            <div class="form-container-box">
+                <h1 style="color:var(--accent); margin-bottom:0.5rem; text-align:center;">Commander un Livre Personnalisé</h1>
+                <p class="order-welcome" id="order-welcome"></p>
+                <form onsubmit="handleCustomOrder(event)">
+                    <div class="form-group">
+                        <label>Fichier PDF du cours :</label>
+                        <input type="file" id="order-pdf" accept="application/pdf" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Décrivez la mélodie que vous désirez :</label>
+                        <textarea id="order-melody" rows="3" placeholder="Ex: une musique douce et calme en fond, style piano, sans paroles..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Décrivez comment vous voulez que votre livre soit conçu :</label>
+                        <textarea id="order-design" rows="4" placeholder="Ex: voix féminine posée, résumé par chapitres, points clés répétés à la fin de chaque chapitre..." required></textarea>
+                    </div>
+                    <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1rem;">Tarif : 2000 FCFA, payable via Wave.</p>
+                    <button type="submit" class="btn-submit">Valider ma commande et payer avec Wave (2000 FCFA)</button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- 3. VUE CATALOGUE DYNAMIQUE -->
+    <div id="view-dynamic-cat" class="page-view">
+        <div class="banner" id="cat-banner-box">
+            <h1 id="cat-banner-title">Catalogue</h1>
+            <p id="cat-banner-desc">Explorez les cours audio de cette catégorie.</p>
+        </div>
+        <main class="container">
+            <div class="courses-grid" id="grid-dynamic-courses"></div>
+            <section class="cat-comments" id="cat-comments-section"></section>
+        </main>
+    </div>
+
+    <!-- 4. VUE PANIER -->
+    <div id="view-cart" class="page-view">
+        <main class="container">
+            <h1 style="margin-bottom: 1.5rem;">🛒 Votre Panier d'Achats</h1>
+            <div id="cart-items-wrapper"></div>
+        </main>
+    </div>
+
+    <!-- 5. VUE ADMIN (SÉCURISÉE) -->
+    <div id="view-admin" class="page-view">
+        <div id="admin-auth-sec" class="admin-login-box">
+            <h2>🔒 Accès Administrateur</h2>
+            <p>Entrez le mot de passe de gestion restreint pour accéder à la plateforme.</p>
+            <form onsubmit="handleAdminLogin(event)">
+                <div class="form-group">
+                    <label for="admin-pass">Mot de Passe Administrateur :</label>
+                    <input type="password" id="admin-pass" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn-submit">Se Connecter</button>
+            </form>
+        </div>
+
+        <div id="admin-dash-sec" class="admin-dashboard" style="display:none;">
+            <div class="admin-header">
+                <div>
+                    <h2>🛠️ Panneau de Gestion & Commandes</h2>
+                    <p style="color:var(--text-muted); font-size:0.9rem;">Gestion des catalogues, livres et suivi des commandes personnalisées</p>
+                </div>
+                <button onclick="adminLogout()" class="btn-logout">Déconnexion</button>
+            </div>
+
+            <div class="admin-card">
+                <h3>📊 Statistiques de la Plateforme</h3>
+                <div class="stats-grid" id="admin-stats-container"></div>
+            </div>
+
+            <!-- SECTION : COMMANDES DE LIVRES PERSONNALISÉS REÇUES -->
+            <div class="admin-card">
+                <h3>📥 Commandes de Livres Personnalisés (<span id="orders-count">0</span>)</h3>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Client</th>
+                            <th>Téléphone</th>
+                            <th>Niveau</th>
+                            <th>Mélodie souhaitée</th>
+                            <th>Conception du livre</th>
+                            <th>Fichier PDF</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-custom-orders-list"></tbody>
+                </table>
+            </div>
+
+            <!-- LIVRES PUBLIÉS (SUPPRESSION) -->
+            <div class="admin-card">
+                <h3>Livres publiés (<span id="courses-count">0</span>)</h3>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Position dans le catalogue</th>
+                            <th>Titre</th>
+                            <th>Catalogue</th>
+                            <th>Type</th>
+                            <th>Format</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-courses-list"></tbody>
+                </table>
+            </div>
+
+            <!-- MODIFIER UN LIVRE -->
+            <div class="admin-card" id="edit-course-card" style="display:none;">
+                <h3>Modifier un livre</h3>
+                <form onsubmit="saveCourseEdit(event)">
+                    <div class="form-group">
+                        <label>Nom du livre :</label>
+                        <input type="text" id="edit-title" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Catalogue :</label>
+                        <select id="edit-cat" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Gratuit ou Payant :</label>
+                        <select id="edit-access" required>
+                            <option value="free">Gratuit</option>
+                            <option value="paid">Payant</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Remplacer le fichier du livre, audio ou vidéo (actuel : <span id="edit-current-file"></span>) :</label>
+                        <input type="file" id="edit-media-file" accept="audio/*,video/*">
+                        <small style="color:var(--text-muted);">Laisse vide pour conserver le fichier actuel.</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Remplacer la couverture (facultatif) :</label>
+                        <input type="file" id="edit-img-file" accept="image/*">
+                    </div>
+                    <button type="submit" class="btn-submit">Enregistrer les modifications</button>
+                    <button type="button" class="btn-logout" style="width:100%; margin-top:0.6rem; padding:0.8rem;" onclick="cancelEditCourse()">Annuler</button>
+                </form>
+            </div>
+
+            <div class="admin-grid">
+                <div>
+                    <!-- AJOUTER UN CATALOGUE -->
+                    <div class="admin-card">
+                        <h3>📁 Créer un Nouveau Catalogue</h3>
+                        <form onsubmit="addNewCategory(event)">
+                            <div class="form-group">
+                                <label>Nom du catalogue :</label>
+                                <input type="text" id="new-cat-name" placeholder="Ex: Philosophie" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Description :</label>
+                                <input type="text" id="new-cat-desc" placeholder="Courts résumés..." required>
+                            </div>
+                            <div class="form-group">
+                                <label>Prix du catalogue (FCFA) :</label>
+                                <input type="number" id="new-cat-price" min="0" step="100" value="5000" required>
+                            </div>
+                            <button type="submit" class="btn-submit">Ajouter le Catalogue</button>
+                        </form>
+                    </div>
+
+                    <!-- AJOUTER UN LIVRE AVEC ACCÈS -->
+                    <div class="admin-card">
+                        <h3>➕ Ajouter un Livre & Audio</h3>
+                        <form onsubmit="addNewCourse(event)">
+                            <div class="form-group">
+                                <label>Titre du cours / livre :</label>
+                                <input type="text" id="new-title" placeholder="Ex: Masterclass Audio" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Catalogue cible :</label>
+                                <select id="new-cat-select" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Le livre est : Gratuit ou Payant ? (obligatoire)</label>
+                                <select id="new-access-type" required>
+                                    <option value="">-- Choisir Gratuit ou Payant --</option>
+                                    <option value="free">🟢 Gratuit (écoute libre sur AUDIMO)</option>
+                                    <option value="paid">🔴 Payant (verrouillé avant l'écoute)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Fichier du livre (audio ou vidéo, MP4 recommandé) :</label>
+                                <input type="file" id="new-media-file" accept="audio/*,video/*" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Image de couverture (paysage 2000 x 1414, facultative pour une vidéo : elle sera alors créée à partir de la vidéo) :</label>
+                                <input type="file" id="new-img-file" accept="image/*">
+                            </div>
+                            <button type="submit" class="btn-submit">Uploader et Publier</button>
+                        </form>
+                    </div>
+
+                    <div class="admin-card">
+                        <h3>🗑️ Supprimer un Catalogue</h3>
+                        <div class="form-group">
+                            <label>Sélectionner le catalogue :</label>
+                            <select id="delete-cat-select"></select>
+                        </div>
+                        <button onclick="deleteCategory()" class="btn-logout" style="width:100%; padding: 0.8rem;">Supprimer le catalogue</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-col">
+                <h3>AUDIMO<span>.</span></h3>
+                <p>Votre plateforme exclusive pour l'écoute de livres audio et formations en ligne.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Navigation</h4>
+                <ul id="footer-nav-links"></ul>
+            </div>
+            <div class="footer-col">
+                <h4>Contact</h4>
+                <p>Email: support@audimo.com</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 AUDIMO. Tous droits réservés.</p>
+        </div>
+    </footer>
+
+    <!-- SCRIPT APPLICATION (voir script.js) -->
+    <script src="script.js"></script>
+</body>
+</html>
